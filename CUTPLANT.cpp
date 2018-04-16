@@ -1,48 +1,33 @@
 #include <iostream>
 using namespace std;
 
-void fastscan(int &n)
-{
-    register int c;
-    n=0;
-    c=getchar();
-    for (;(c>47 && c<58);c=getchar())
-        n=n*10+c-48;
-}
-
 int search(int q[], int l, int r, int x)
 {
-    if(x>=q[l])
-        return l;
-    if(x<q[r])
-        return r+1;
+    if(x>=q[l]) return l;
+    if(x<q[r]) return r+1;
     int m;
     while(r!=l+1)
     {
         m=(l+r)/2;
-        if(q[m]<=x)
-            r=m;
-        else
-            l=m;
+        if(q[m]<=x) r=m;
+        else l=m;
     }
     return r;
 }
 
 int main()
 {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
     int t,n,i; bool flag;
-    fastscan(t);
+    cin>>t;
     while(t--)
     {
-        fastscan(n);
+        cin>>n;
         int a[n],b[n];
-        for(int i=0;i<n;i++) fastscan(a[i]);
+        for(int i=0;i<n;i++) cin>>a[i];
         flag=1;
         for(i=0;i<n;i++)
         {
-            fastscan(b[i]);
+            cin>>b[i];
             if(flag && b[i]>a[i]) flag=0;
         }
         if(flag)
