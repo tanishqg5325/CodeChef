@@ -1,60 +1,69 @@
 #include <bits/stdc++.h>
-#include <cmath>
-#include <limits>
-typedef long long ll;
 using namespace std;
 
-ll num = 1000000000;
+int num = 1000000000, inf = INT_MAX;
 
-void buildtree(ll low, ll high, ll pos, ll a[], ll tree[])
+struct node
 {
-    if (low == high)
+    vector<int> v;
+};
+
+vector<int> constructST(int arr[], int ss, int se, node st[], int si)
+{
+    if (ss == se) { vector<int> v(1); v[0] = arr[ss]; st[si].v = v; return v; }
+    int mid = (ss + se)/2,m,n;
+    vector<int> v1 = constructST(arr, ss, mid, st, 2*si+1); m = v1.size();
+    vector<int> v2 = constructST(arr, mid+1, se, st, 2*si+2); n = v2.size();
+    vector<int> v(m+n);
+    int i(0),j(0),k(0);
+    while(i<m && j<n)
     {
-        tree[pos] = a[low];
-        return;
+        if(v1[i]<=v2[j]) v[k++] = v1[i++];
+        else v[k++] = v2[j++];
     }
-    int mid = (low + high) >> 1;
-    buildtree(low, mid, 2 * pos + 1, a, tree);
-    buildtree(mid + 1, high, 2 * pos + 2, a, tree);
-    if (tree[2 * pos + 1] < tree[2 * pos + 2])
-        tree[pos] = tree[2 * pos + 1];
-    else if (tree[2 * pos + 1] > tree[2 * pos + 2])
-        tree[pos] = tree[2 * pos + 2];
-    else
-        tree[pos] = tree[2 * pos + 1];
+    while(i<m) v[k++] = v1[i++];
+    while(j<n) v[k++] = v2[j++];
+    st[si].v = v;
+    return v;
 }
 
-pair<ll,ll> query(ll node, ll start, ll end, ll l, ll r, ll k, ll ar[])
+int ans(node st[], int ss, int se, int l, int r, int i, int x)
 {
-    if (start>r || end<l)
-        return make_pair(numeric_limits<ll>::max(), numeric_limits<ll>::max());
-
-    if(l<=start && end <= r)
-        return make_pair((ll)abs(num - ar[node] - k), ar[node]);
-
-    ll mid = (start + end) / 2;
-    pair<ll,ll> p1 = query(2*node+1, start, mid, l, r, k, ar);
-    pair<ll,ll> p2 = query(2*node+2, mid+1, end, l, r, k, ar);
-    if(p1.first<p2.first) return p1;
-    if(p1.first>p2.first) return p2;
-    return make_pair(p1.first, min(p1.second, p2.second));
+    if(ss > r || se < l) return inf;
+    if(ss >= l && se <= r)
+    {
+        vector<int> v = st[i].v; int n = v.size();
+        if(x >= v[n-1]) return v[n-1];
+        if(x <= v[0]) return v[0];
+        int lower = lower_bound(v.begin(), v.end(), x) - v.begin();
+        if(abs(v[lower-1]-x) <= abs(v[lower]-x)) return v[lower-1];
+        else return v[lower];
+    }
+    int mid = (ss + se)/2;
+    int x1 = ans(st, ss, mid, l, r, 2*i+1, x);
+    int x2 = ans(st, mid+1, se, l, r, 2*i+2, x);
+    if(abs(x-x1) < abs(x-x2)) return x1;
+    else if(abs(x-x1) > abs(x-x2)) return x2;
+    return min(x1,x2);
 }
 
 int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-    ll n,q,l,r,k;
+    int n,q,l,r,k;
     cin>>n>>q;
-    ll ar[n];
-    for(ll i=0;i<n;i++) cin>>ar[i];
-    ll tree[200000]{};
-    buildtree(0,n-1,0,ar,tree);
+    int ar[n];
+    for(int i=0;i<n;i++) cin>>ar[i];
+    int x = (int)(ceil(log2(n)));
+    int max_size = (1<<(x+1)) - 1;
+    node st[max_size];
+    constructST(ar,0,n-1,st,0);
     while(q--)
     {
         cin>>l>>r>>k;
-        pair<ll,ll> p = query(0,0,n-1,l-1,r-1,k,tree);
-        cout<<p.second<<"\n";
+        l--; r--;
+        cout<<ans(st, 0, n-1, l, r, 0, num-k)<<"\n";
     }
     return 0;
 }

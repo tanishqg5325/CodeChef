@@ -10,6 +10,7 @@ struct node
 
 void linku(node *a, node *b)
 {
+    if(a == b) return;
     if(a->ranku >= b->ranku) {b->p = a; a->c = min(a->c,b->c); }
     else {a->p = b; b->c = min(a->c,b->c); return;}
     if(a->ranku == b->ranku) a->ranku++;
