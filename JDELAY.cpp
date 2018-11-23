@@ -14,7 +14,7 @@ int main()
     {
         cin>>n; ans=0;
         int s[n],j[n];
-        for(int i=0;i<n;i++) {cin>>s[i]>>j[i]; if(j[i]-s[i]>5)ans++;}
+        for(int i=0;i<n;i++) {cin>>s[i]>>j[i]; if(j[i]-s[i]>5) ans++;}
         cout<<ans<<"\n";
     }
     return 0;

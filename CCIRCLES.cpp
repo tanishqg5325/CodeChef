@@ -29,13 +29,13 @@ int main()
 	        r2 = c[j].r;
 	        if(d <= r1+r2)
 	        {
-                if(fabs(r1-r2)<=d) kMin = 0;
-                else kMin = ceil(fabs(r1-r2)-d);
+                	if(fabs(r1-r2)<=d) kMin = 0;
+                	else kMin = ceil(fabs(r1-r2)-d);
 	        }
-            else kMin = ceil(d-r1-r2);
+            	else kMin = ceil(d-r1-r2);
 	        kMAx = floor(d+r1+r2)+1;
 	        if(kMin <= 1000000) freq[(int)kMin]++;
-            if(kMAx <= 1000000) freq[(int)kMAx]--;
+            	if(kMAx <= 1000000) freq[(int)kMAx]--;
 	    }
 	for(int i=1; i<=1000000; i++) freq[i] += freq[i-1];
 	while(q--)
