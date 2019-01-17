@@ -1,87 +1,50 @@
 #include <bits/stdc++.h>
-#include <list>
+#define pb push_back
+typedef long long ll;
 using namespace std;
 
-class Graph
+struct node
 {
-    int V;    // No. of vertices
-    list<int> *adj;    // Pointer to an array containing adjacency lists
-    bool isCyclicUtil(int v, bool visited[], int parent);
-public:
-    Graph(int V);   // Constructor
-    void addEdge(int v, int w);   // to add an edge to graph
-    bool isCyclic();   // returns true if there is a cycle
+    int rank, p, c;
 };
 
-Graph::Graph(int V)
-{
-    this->V = V;
-    adj = new list<int>[V];
-}
+node gear[100000]; vector<int> *adj;
 
-void Graph::addEdge(int v, int w)
+void linku(int a, int b)
 {
-    adj[v].push_back(w); // Add w to v’s list.
-    adj[w].push_back(v); // Add v to w’s list.
-}
-
-// A recursive function that uses visited[] and parent to detect
-// cycle in subgraph reachable from vertex v.
-bool Graph::isCyclicUtil(int v, bool visited[], int parent)
-{
-    // Mark the current node as visited
-    visited[v] = true;
-
-    // Recur for all the vertices adjacent to this vertex
-    list<int>::iterator i;
-    for (i = adj[v].begin(); i != adj[v].end(); ++i)
+    if(a == b) return;
+    if(gear[a].rank >= gear[b].rank) {gear[b].p = a; gear[a].c += gear[b].c;}
+    else
     {
-        // If an adjacent is not visited, then recur for that adjacent
-        if (!visited[*i])
-        {
-           if (isCyclicUtil(*i, visited, v))
-              return true;
-        }
-
-        // If an adjacent is visited and not parent of current vertex,
-        // then there is a cycle.
-        else if (*i != parent)
-           return true;
+        gear[a].p = b; gear[b].c += gear[a].c;
+        return;
     }
-    return false;
+    if(gear[a].rank == gear[b].rank) gear[a].rank++;
 }
 
-// Returns true if the graph contains a cycle, else false.
-bool Graph::isCyclic()
+int findu(int n)
 {
-    // Mark all the vertices as not visited and not part of recursion
-    // stack
-    bool *visited = new bool[V];
-    for (int i = 0; i < V; i++) visited[i] = false;
-
-    // Call the recursive helper function to detect cycle in different
-    // DFS trees
-    for (int u = 0; u < V; u++)
-        if (!visited[u]) // Don't recur for u if it is already visited
-          if (isCyclicUtil(u, visited, -1))
-             return true;
-    return false;
+    if(n != gear[n].p) gear[n].p = findu(gear[n].p);
+    return gear[n].p;
 }
 
-int gcd(int m, int n)
+ll gcd(ll m, ll n) {if(n == 0) return m; return gcd(n,m%n);}
+
+void dfs(int v, bool pres, bool color[], unordered_set<int> &visited)
 {
-    if(n==0) return m;
-    return gcd(n,m%n);
+    color[v] = pres;
+    visited.insert(v);
+    for(auto i : adj[v]) if(visited.find(i) == visited.end()) dfs(i, pres^1, color, visited);
 }
 
 int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-    int n,m,t,x,y,c,v;
+    int n,m,t,x,y,c,v,xp,yp; ll num,den,g;
     cin>>n>>m;
-    int teeth[n]; bool conn[n][n]{},blckd[n]{};
-    Graph g(n);
+    ll teeth[n]; bool blckd[n]{},color[n]{}; adj = new vector<int>[n];
+    for(int i=0;i<n;i++) {gear[i].rank = 0; gear[i].p = i; gear[i].c = 1;}
     for(int i=0;i<n;i++) cin>>teeth[i];
     while(m--)
     {
@@ -93,15 +56,37 @@ int main()
         }
         else if(t==2)
         {
-            cin>>x>>y;
-            if(x!=y){x--; y--; g.addEdge(x,y);}
+            cin>>x>>y; x--; y--;
+            xp = findu(x); yp = findu(y);
+            if(blckd[xp] || blckd[yp]) blckd[xp] = blckd[yp] = 1;
+            else
+            {
+                if(xp != yp)
+                {
+                    if(color[x] == color[y])
+                    {
+                        unordered_set<int> visited;
+                        if(gear[xp].c > gear[yp].c) dfs(y, color[y]^1, color, visited);
+                        else dfs(x, color[x]^1, color, visited);
+                    }
+                    adj[x].pb(y); adj[y].pb(x);
+                    linku(xp, yp);
+                }
+                else if(color[x] == color[y]) blckd[xp] = 1;
+            }
         }
         else if(t==3)
         {
-            cin>>x>>y>>v;
-            x--;y--;
-            if(blckd[x] || blckd[y]) cout<<"0\n";
-
+            cin>>x>>y>>v; x--;y--;
+            xp = findu(x); yp = findu(y);
+            if(blckd[xp] || blckd[yp] || xp != yp) cout<<"0\n";
+            else
+            {
+                num = v * teeth[x], den = teeth[y];
+                g = gcd(num, den); num /= g; den /= g;
+                if(color[x] != color[y]) num = -num;
+                cout<<num<<"/"<<den<<"\n";
+            }
         }
     }
     return 0;

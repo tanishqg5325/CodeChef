@@ -1,147 +1,53 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-/*struct SegmentTreeNode
+struct node
 {
-  // variables to store aggregate statistics and
-  // any other information required to merge these
-  // aggregate statistics to form parent nodes
-
-  void assignLeaf(T value) {
-    // T is the type of input array element
-    // Given the value of an input array element,
-    // build aggregate statistics for this leaf node
-  }
-
-  void merge(SegmentTreeNode& left, SegmentTreeNode& right) {
-    // merge the aggregate statistics of left and right
-    // children to form the aggregate statistics of
-    // their parent node
-  }
-
-  V getValue() {
-    // V is the type of the required aggregate statistic
-    // return the value of required aggregate statistic
-    // associated with this node
-  }
-};*/
-
-struct SegmentTreeNode
-{
-	int prefixMaxSum, suffixMaxSum, maxSum, sum;
-
-	void assignLeaf(int value)
-	{
-		prefixMaxSum = suffixMaxSum = maxSum = sum = value;
-	}
-
-	void merge(SegmentTreeNode& left, SegmentTreeNode& right)
-	{
-		sum = left.sum + right.sum;
-		prefixMaxSum = max(left.prefixMaxSum, left.sum + right.prefixMaxSum);
-		suffixMaxSum = max(right.suffixMaxSum, right.sum + left.suffixMaxSum);
-		maxSum = max(prefixMaxSum, max(suffixMaxSum, max(left.maxSum, max(right.maxSum, left.suffixMaxSum + right.prefixMaxSum))));
-	}
-
-	int getValue()
-	{
-		return maxSum;
-	}
+    int sum,prefix,suffix,ans;
 };
 
-// T is the type of input array elements
-// V is the type of required aggregate statistic
-template<class T, class V>
-class SegmentTree
+node mer(node n1, node n2)
 {
-	SegmentTreeNode* nodes;
-	int N;
+    node res;
+    res.sum = n1.sum + n2.sum;
+    res.prefix = max(n1.prefix, n1.sum+n2.prefix);
+    res.suffix = max(n2.suffix, n2.sum + n1.suffix);
+    res.ans = max(max(n1.ans, n2.ans), n1.suffix + n2.prefix);
+    return res;
+}
 
-public:
-	SegmentTree(T arr[], int N)
-	{
-		this->N = N;
-		nodes = new SegmentTreeNode[getSegmentTreeSize(N)];
-		buildTree(arr, 1, 0, N-1);
-	}
+void constructST(int si, int ss, int se, int ar[], node st[])
+{
+    if(ss == se) {st[si] = {ar[ss], ar[ss], ar[ss], ar[ss]}; return;}
+    int mid = (ss + se)/2;
+    constructST(2*si+1,ss,mid,ar,st);
+    constructST(2*si+2,mid+1,se,ar,st);
+    st[si] = mer(st[2*si+1], st[2*si+2]);
+}
 
-	~SegmentTree() { delete[] nodes; }
-
-	V getValue(int lo, int hi)
-	{
-		SegmentTreeNode result = getValue(1, 0, N-1, lo, hi);
-		return result.getValue();
-	}
-
-	void update(int index, T value)
-	{
-		update(1, 0, N-1, index, value);
-	}
-
-private:
-    int getSegmentTreeSize(int N)
-	{
-		int size = 1;
-		for (; size < N; size <<= 1);
-		return size << 1;
-	}
-
-	void buildTree(T arr[], int stIndex, int lo, int hi)
-	{
-		if (lo == hi)
-        {
-			nodes[stIndex].assignLeaf(arr[lo]);
-			return;
-		}
-		int left = 2 * stIndex, right = left + 1, mid = (lo + hi) / 2;
-		buildTree(arr, left, lo, mid);
-		buildTree(arr, right, mid + 1, hi);
-		nodes[stIndex].merge(nodes[left], nodes[right]);
-	}
-
-	SegmentTreeNode getValue(int stIndex, int left, int right, int lo, int hi)
-	{
-		if (left == lo && right == hi) return nodes[stIndex];
-		int mid = (left + right) / 2;
-		if (lo > mid)
-			return getValue(2*stIndex+1, mid+1, right, lo, hi);
-		if (hi <= mid)
-			return getValue(2*stIndex, left, mid, lo, hi);
-
-		SegmentTreeNode leftResult = getValue(2*stIndex, left, mid, lo, mid);
-		SegmentTreeNode rightResult = getValue(2*stIndex+1, mid+1, right, mid+1, hi);
-		SegmentTreeNode result;
-		result.merge(leftResult, rightResult);
-		return result;
-	}
-
-	void update(int stIndex, int lo, int hi, int index, T value)
-	{
-		if (lo == hi)
-        {
-			nodes[stIndex].assignLeaf(value);
-			return;
-		}
-		int left = 2 * stIndex, right = left + 1, mid = (lo + hi) / 2;
-		if (index <= mid) update(left, lo, mid, index, value);
-		else update(right, mid+1, hi, index, value);
-		nodes[stIndex].merge(nodes[left], nodes[right]);
-	}
-};
+node solve(int si, int ss, int se, node st[], int l, int r)
+{
+    if(l == ss && r == se) return st[si];
+    int mid = (ss + se)/2;
+    if(l > mid) return solve(2*si+2, mid+1, se, st, l, r);
+    if(r <= mid) return solve(2*si+1, ss, mid, st, l, r);
+    return mer(solve(2*si+1, ss, mid, st, l, mid), solve(2*si+2, mid+1, se, st, mid+1, r));
+}
 
 int main()
 {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL); cout.tie(NULL);
-	int N, i, A[50000], M, x, y;
-	scanf("%d", &N);
-	for (i = 0; i < N; ++i) scanf("%d", &A[i]);
-	SegmentTree<int,int> st(A, N);
-	cin>>M;
-	while(M--)
-    	{
-		scanf("%d %d",&x,&y);
-		printf("%d\n", st.getValue(x-1, y-1));
-	}
-	return 0;
+    int n,q,x,y; cin>>n;
+    int ar[n]; for(int i=0;i<n;i++) cin>>ar[i];
+    x = (int)(ceil(log2(n)));
+    y = (1<<(x+1)) - 1;
+    node st[y]; constructST(0, 0, n-1, ar, st);
+    cin>>q;
+    while(q--)
+    {
+        cin>>x>>y; x--; y--;
+        cout<<solve(0, 0, n-1, st, x, y).ans<<"\n";
+    }
+    return 0;
 }
