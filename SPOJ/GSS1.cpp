@@ -6,11 +6,11 @@ struct node
     int sum,prefix,suffix,ans;
 };
 
-node mer(node n1, node n2)
+node mer(node &n1, node &n2)
 {
     node res;
     res.sum = n1.sum + n2.sum;
-    res.prefix = max(n1.prefix, n1.sum+n2.prefix);
+    res.prefix = max(n1.prefix, n1.sum + n2.prefix);
     res.suffix = max(n2.suffix, n2.sum + n1.suffix);
     res.ans = max(max(n1.ans, n2.ans), n1.suffix + n2.prefix);
     return res;
@@ -31,7 +31,8 @@ node solve(int si, int ss, int se, node st[], int l, int r)
     int mid = (ss + se)/2;
     if(l > mid) return solve(2*si+2, mid+1, se, st, l, r);
     if(r <= mid) return solve(2*si+1, ss, mid, st, l, r);
-    return mer(solve(2*si+1, ss, mid, st, l, mid), solve(2*si+2, mid+1, se, st, mid+1, r));
+    node n1 = solve(2*si+1, ss, mid, st, l, mid), n2 = solve(2*si+2, mid+1, se, st, mid+1, r);
+    return mer(n1, n2);
 }
 
 int main()
