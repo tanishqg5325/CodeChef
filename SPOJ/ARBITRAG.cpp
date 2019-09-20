@@ -25,9 +25,8 @@ int main()
                 for(int j=0;j<n;j++)
                     dp[i][j] = max(dp[i][j], dp[i][k] * dp[k][j]);
         for(i=0;i<n;i++)
-            for(int j=0;j<n;j++)
-                if(dp[i][j] * dp[j][i] > 1)
-                    i = j = n+1;
+            if(dp[i][i] > 1)
+                    i = n+1;
         cout<<"Case "<<t<<": ";
         if(i == n) cout<<"No\n";
         else cout<<"Yes\n";
